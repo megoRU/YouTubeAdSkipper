@@ -1,10 +1,32 @@
 {
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
+  "name": "AdFreeVideoExperience",
+  "description": "Расширение автоматически пропускает встроенную рекламу от автора YouTube видеоролика.",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "hello.html",
-    "default_icon": "hello_extensions.png"
-  }
+    "default_popup": "popup/popup.html",
+    "default_icon": "images/hello_extensions.png"
+  },
+  "icons": {
+    "16": "images/hello_extensions.png",
+    "32": "images/hello_extensions.png",
+    "48": "images/hello_extensions.png",
+    "128": "images/hello_extensions.png"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "webNavigation"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["scripts/contentScript.js"]
+    }
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ]
 }
