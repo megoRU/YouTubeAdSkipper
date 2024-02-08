@@ -4,20 +4,17 @@ const extensionToggle = document.getElementById('extensionToggle');
 // Загрузка сохраненного состояния из chrome.storage.local
 function loadSettings() {
     // Используем chrome.storage.local.get для получения данных из локального хранилища
-    chrome.storage.sync.get('extensionEnabled', function(result) {
+    chrome.storage.sync.get('extensionEnabled', function (result) {
         const extensionEnabled = result.extensionEnabled;
         extensionToggle.checked = extensionEnabled === 'true';
         console.log('extensionToggle.checked: ' + extensionToggle.checked);
     });
-
-
-
 }
 
 // Сохранение состояния в chrome.storage.local при изменении тумблера
 function saveSettings() {
     // Используем chrome.storage.local.set для сохранения данных в локальное хранилище
-    chrome.storage.sync.set({ 'extensionEnabled': extensionToggle.checked ? 'true' : 'false' }, function() {
+    chrome.storage.sync.set({'extensionEnabled': extensionToggle.checked ? 'true' : 'false'}, function () {
         console.log('Settings saved');
     });
 }
@@ -31,13 +28,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Обновляем текст на всплывающем окне с полученным URL
         document.getElementById('urlDisplay').innerText = message.url;
     }
+
+    const urlElement = document.getElementById('urlDisplay');
+    let urlReplaced = urlElement.textContent.replaceAll("Ссылка: ", "");
+    const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
+
+    if (!urlReplaced.match(regExp)) {
+        const adDataInput = document.getElementById('adData');
+        const sendDataButton = document.getElementById('sendData');
+        const adTimes = document.getElementById('adTimes');
+        adTimes.remove()
+        sendDataButton.remove()
+        adDataInput.remove()
+    }
 });
 
 // Опционально: отправляем запрос на получение текущего URL при открытии popup
-chrome.runtime.sendMessage({ type: 'requestUrl' });
+chrome.runtime.sendMessage({type: 'requestUrl'});
 
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const urlElement = document.getElementById('urlDisplay');
     const dev = document.getElementById('dev-input');
     const adDataInput = document.getElementById('adData');
@@ -61,6 +70,3 @@ document.addEventListener('DOMContentLoaded', function() {
         adTimes.remove()
     });
 });
-
-// Загрузка сохраненных настроек при загрузке страницы
-document.addEventListener('DOMContentLoaded', loadSettings);
