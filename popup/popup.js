@@ -4,7 +4,7 @@ const extensionToggle = document.getElementById('extensionToggle');
 // Загрузка сохраненного состояния из chrome.storage.local
 function loadSettings() {
     // Используем chrome.storage.local.get для получения данных из локального хранилища
-    chrome.storage.sync.get('extensionEnabled', function (result) {
+    chrome.storage.local.get('extensionEnabled', function (result) {
         const extensionEnabled = result.extensionEnabled;
         extensionToggle.checked = extensionEnabled === 'true';
         console.log('extensionToggle.checked: ' + extensionToggle.checked);
@@ -14,7 +14,7 @@ function loadSettings() {
 // Сохранение состояния в chrome.storage.local при изменении тумблера
 function saveSettings() {
     // Используем chrome.storage.local.set для сохранения данных в локальное хранилище
-    chrome.storage.sync.set({'extensionEnabled': extensionToggle.checked ? 'true' : 'false'}, function () {
+    chrome.storage.local.set({'extensionEnabled': extensionToggle.checked ? 'true' : 'false'}, function () {
         console.log('Settings saved');
     });
 }
@@ -69,4 +69,5 @@ document.addEventListener('DOMContentLoaded', function () {
         sendDataButton.remove()
         adTimes.remove()
     });
+    loadSettings();
 });

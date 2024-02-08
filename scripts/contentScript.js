@@ -40,7 +40,7 @@ navigator.serviceWorker.controller.postMessage({
 });
 
 setInterval(() => {
-    chrome.storage.sync.get('extensionEnabled').then(function(result) {
+    chrome.storage.local.get('extensionEnabled').then(function(result) {
         const extensionToggle = result.extensionEnabled;
         console.log(`extensionToggle: ${extensionToggle}`);
 
