@@ -20,6 +20,9 @@
     "contextMenus",
     "webNavigation"
   ],
+  "background": {
+    "service_worker": "scripts/service-worker.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
@@ -27,6 +30,9 @@
     }
   ],
   "host_permissions": [
-    "https://www.youtube.com/*"
+    "https://youtube.com/*",
+    "https://*.youtube.com/*",
+    "https://www.youtube-nocookie.com/*",
+    "https://youtube.googleapis.com/*"
   ]
 }

@@ -1,7 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
+<head>
+    <title>AdFreeVideoExperience</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="popup.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-<h1>Hello Extensions</h1>
-<script src="popup.js"></script>
+<div id="main">
+    <main>
+        <p id="urlDisplay"></p>
+        <p id="dev-input"></p>
+        <article>
+            <label>
+                <input type="checkbox" id="extensionToggle">
+                Расширение включено
+                <div class="toggle">
+                    <div class="slider"></div>
+                </div>
+            </label>
+
+            <div id="adTimes">
+                <br>
+                <!-- Поле для указания названия рекламы -->
+                <label for="adData">Указать рекламу в видео:</label>
+                <br>
+                <input type="text" id="adData" placeholder="00:00-00:30;01:00-02:30">
+            </div>
+            <br>
+
+            <!-- Кнопка для отправки данных -->
+            <button id="sendData">Отправить</button>
+        </article>
+        <hr class="mt-5">
+        <a href="https://megoru.github.io/" target="_blank">Создатель расширения</a>
+    </main>
+</div>
 </body>
 </html>

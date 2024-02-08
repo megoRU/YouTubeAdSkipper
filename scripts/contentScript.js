@@ -34,8 +34,24 @@ function fastForwardVideo(seconds) {
     }
 }
 
-// Устанавливаем интервал для периодической проверки времени
+// Отправка сообщения с запросом состояния тумблера
+navigator.serviceWorker.controller.postMessage({
+    type: 'extensionEnabled'
+});
+
 setInterval(() => {
-    // Замените adStartTime и adEndTime на значения, полученные из вашего API
-    checkAndFastForward("00:01:36", "00:02:00");
-}, 1000); // Проверяем каждые 1 секунд
+    chrome.storage.sync.get('extensionEnabled').then(function(result) {
+        const extensionToggle = result.extensionEnabled;
+        console.log(`extensionToggle: ${extensionToggle}`);
+
+        if (extensionToggle === 'true') {
+            // Тумблер включен, выполните ваш код
+            // Замените adStartTime и adEndTime на значения, полученные из вашего API
+            checkAndFastForward("00:01:36", "00:02:00");
+        } else {
+            console.info("Тумблер выключен");
+        }
+    }).catch(function(error) {
+        console.info("Произошла ошибка при получении данных:", error);
+    });
+}, 1000);
