@@ -54,7 +54,7 @@ function getAdData() {
             return data;
         })
         .catch(error => {
-            console.error("Произошла ошибка при получении данных о рекламе:", error);
+            console.info("Произошла ошибка при получении данных о рекламе:", error);
             return null;
         });
 }

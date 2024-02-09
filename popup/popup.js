@@ -24,6 +24,8 @@ extensionToggle.addEventListener('change', saveSettings);
 
 // Подписываемся на события сообщений от фонового скрипта
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log("chrome.runtime.onMessage.addListener updateUrl");
+
     if (message.type === 'updateUrl') {
         // Обновляем текст на всплывающем окне с полученным URL
         document.getElementById('urlDisplay').innerText = message.url;
@@ -31,15 +33,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     const urlElement = document.getElementById('urlDisplay');
     let urlReplaced = urlElement.textContent.replaceAll("Ссылка: ", "");
-    const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
+    const regExp = 'https:\/\/www.youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})';
 
     if (!urlReplaced.match(regExp)) {
         const adDataInput = document.getElementById('adData');
         const sendDataButton = document.getElementById('sendData');
         const adTimes = document.getElementById('adTimes');
-        adTimes.remove()
-        sendDataButton.remove()
-        adDataInput.remove()
+        adTimes.remove();
+        sendDataButton.remove();
+        adDataInput.remove();
+        console.log("Удаляем все");
+    } else {
+        console.log("Ничего не удаляем");
     }
 });
 
