@@ -39,15 +39,81 @@ navigator.serviceWorker.controller.postMessage({
     type: 'extensionEnabled'
 });
 
+// Получение данных о рекламе для текущего видео
+function getAdData() {
+    // Создаем полный URL с параметрами
+    const apiUrl = `http://localhost:8080/youtube?videoId=` + getVideoURL();
+
+    globalUrl = getVideoURL();
+    console.log("apiUrl: " + apiUrl)
+    // Отправляем GET-запрос
+    return fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            return data;
+        })
+        .catch(error => {
+            console.error("Произошла ошибка при получении данных о рекламе:", error);
+            return null;
+        });
+}
+
+
+function getVideoURL() {
+    return document.URL;
+}
+
+var globalUrl = '';
+
+var globalAdIntervals = [];
+
 setInterval(() => {
     chrome.storage.local.get('extensionEnabled').then(function(result) {
         const extensionToggle = result.extensionEnabled;
         console.log(`extensionToggle: ${extensionToggle}`);
 
         if (extensionToggle === 'true') {
-            // Тумблер включен, выполните ваш код
-            // Замените adStartTime и adEndTime на значения, полученные из вашего API
-            checkAndFastForward("00:01:36", "00:02:00");
+            console.log("globalAdIntervals.length: " + globalAdIntervals.length);
+
+            if (globalUrl !== document.URL) {
+                globalAdIntervals = [];
+            }
+
+            if (globalAdIntervals.length === 0) {
+                // Сохраняем промис в globalAdIntervals
+                globalAdIntervals = getAdData().then(adData => {
+                    // Этот код выполнится, когда промис getAdData() разрешится
+                    if (adData && adData.ads) {
+                        // Перебираем массив временных промежутков и выполняем действия для каждого
+                        adData.ads.forEach(adInterval => {
+                            // Разделяем начальное и конечное время
+                            const [startTime, endTime] = adInterval.split('-');
+                            console.log([startTime, endTime])
+                            console.log(startTime)
+                            console.log(endTime)
+
+                            // Замените adStartTime и adEndTime на значения из текущего промежутка
+                            checkAndFastForward(startTime, endTime);
+                        });
+                    }
+                    return adData; // Передаем adData дальше
+                });
+            } else {
+                // Если данные уже есть, обрабатываем их
+                globalAdIntervals.then(adData => {
+                    adData.ads.forEach(adInterval => {
+                        const [startTime, endTime] = adInterval.split('-');
+                        console.log([startTime, endTime])
+                        console.log(startTime)
+                        console.log(endTime)
+
+                        // Замените adStartTime и adEndTime на значения из текущего промежутка
+                        checkAndFastForward(startTime, endTime);
+                    });
+                });
+            }
+            // checkAndFastForward("00:01:36", "00:02:00");
         } else {
             console.info("Тумблер выключен");
         }
