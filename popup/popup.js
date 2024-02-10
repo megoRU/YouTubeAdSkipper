@@ -58,18 +58,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.data.match(regExp)) {
             getVerified(message.data).then(adData => {
                 const verified = adData.verified;
+                const ads = adData.ads;
+                const verifiedElement = document.getElementById('verified');
 
-                if (verified === true) {
-                    const verifiedes = document.getElementById('verified');
+                if (ads === null && verified === false) {
+                    document.getElementById("adTimes").style.display = 'block';
+                    document.getElementById("sendData").style.display = 'block';
+                } else if (verified === true) {
 
                     const icon = document.createElement('img');
                     icon.src = '/images/verified.png'; // Укажите путь к вашей иконке
                     icon.height = 100;
                     icon.width = 100;
 
-                    verifiedes.textContent = "Верифицированное видео ";
+                    verifiedElement.textContent = "Верифицированное видео ";
 
-                    verifiedes.appendChild(icon);
+                    verifiedElement.appendChild(icon);
                 } else {
                     const verifiedElement = document.getElementById('verified');
 
@@ -85,15 +89,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     document.getElementById("sendData").style.display = 'block';
                 }
             });
+        } else {
+            console.log("Получены данные из background.js: ", message);
         }
-        console.log("Получены данные из background.js: ", message);
     }
 });
 
 
 function getVerified(url) {
     // Создаем полный URL с параметрами
-    const apiUrl = `http://localhost:8080/api/verified?videoId=` + url;
+    const apiUrl = `https://api.megoru.ru/api/verified?videoId=` + url;
 
     console.log("apiUrl: " + apiUrl)
     // Отправляем GET-запрос

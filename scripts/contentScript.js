@@ -42,7 +42,7 @@ navigator.serviceWorker.controller.postMessage({
 // Получение данных о рекламе для текущего видео
 function getAdData() {
     // Создаем полный URL с параметрами
-    const apiUrl = `http://localhost:8080/api/youtube?videoId=` + getVideoURL();
+    const apiUrl = `https://api.megoru.ru/api/youtube?videoId=` + getVideoURL();
 
     globalUrl = getVideoURL();
     console.log("apiUrl: " + apiUrl)
@@ -82,14 +82,29 @@ setInterval(() => {
             if (globalAdIntervals.length === 0) {
                 // Сохраняем промис в globalAdIntervals
                 globalAdIntervals = getAdData().then(adData => {
-                    chrome.storage.local.set({'verified': adData.verified ? 'true' : 'false'}, function () {
-                        console.log('Settings saved');
-                    });
-                    // Этот код выполнится, когда промис getAdData() разрешится
-                    if (adData && adData.ads) {
-                        // Перебираем массив временных промежутков и выполняем действия для каждого
+                    if (adData !== null) {
+                        // Этот код выполнится, когда промис getAdData() разрешится
+                        if (adData && adData.ads) {
+                            // Перебираем массив временных промежутков и выполняем действия для каждого
+                            adData.ads.forEach(adInterval => {
+                                // Разделяем начальное и конечное время
+                                const [startTime, endTime] = adInterval.split('-');
+                                console.log([startTime, endTime]);
+                                console.log(startTime);
+                                console.log(endTime);
+
+                                // Замените adStartTime и adEndTime на значения из текущего промежутка
+                                checkAndFastForward(startTime, endTime);
+                            });
+                        }
+                        return adData;
+                    }
+                });
+            } else {
+                // Если данные уже есть, обрабатываем их
+                globalAdIntervals.then(adData => {
+                    if (adData !== undefined) {
                         adData.ads.forEach(adInterval => {
-                            // Разделяем начальное и конечное время
                             const [startTime, endTime] = adInterval.split('-');
                             console.log([startTime, endTime]);
                             console.log(startTime);
@@ -98,25 +113,8 @@ setInterval(() => {
                             // Замените adStartTime и adEndTime на значения из текущего промежутка
                             checkAndFastForward(startTime, endTime);
                         });
+                        return adData;
                     }
-                    return adData; // Передаем adData дальше
-                });
-            } else {
-                // Если данные уже есть, обрабатываем их
-                globalAdIntervals.then(adData => {
-                    chrome.storage.local.set({adData: adData.verified ? 'true' : 'false'}, function () {
-                        console.log('Settings saved');
-                    });
-                    adData.ads.forEach(adInterval => {
-                        const [startTime, endTime] = adInterval.split('-');
-                        console.log([startTime, endTime]);
-                        console.log(startTime);
-                        console.log(endTime);
-
-                        // Замените adStartTime и adEndTime на значения из текущего промежутка
-                        checkAndFastForward(startTime, endTime);
-                    });
-                    return adData;
                 });
             }
             // checkAndFastForward("00:01:36", "00:02:00");
@@ -127,5 +125,3 @@ setInterval(() => {
         console.info("Произошла ошибка при получении данных:", error);
     });
 }, 1000);
-
-chrome.runtime.sendMessage({type: 'verified', data: getVideoURL()});
