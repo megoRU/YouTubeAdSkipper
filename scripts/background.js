@@ -6,6 +6,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
         console.log('Extension installed');
     } else if (details.reason === 'update') {
         console.log('Extension updated');
+        chrome.tabs.create({ url: '/popup/popup.html' });
     }
 });
 
@@ -24,6 +25,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.runtime.sendMessage({type: 'updateUrl', url: "Ссылка: " + currentTab.url});
             } else {
                 console.info("Нет активной вкладки для отправки сообщения 'updateUrl'");
+            }
+        });
+    }
+    if (message.type === 'verified') {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            const currentTab = tabs[0];
+            if (currentTab) {
+                console.log("Пришли данные из метода:", currentTab.url);
+                chrome.runtime.sendMessage({ type: 'updateData', data: currentTab.url });
+            } else {
+                console.info("Нет активной вкладки для отправки сообщения 'updateData'");
             }
         });
     }

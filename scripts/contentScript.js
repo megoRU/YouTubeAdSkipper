@@ -42,7 +42,7 @@ navigator.serviceWorker.controller.postMessage({
 // Получение данных о рекламе для текущего видео
 function getAdData() {
     // Создаем полный URL с параметрами
-    const apiUrl = `http://localhost:8080/youtube?videoId=` + getVideoURL();
+    const apiUrl = `http://localhost:8080/api/youtube?videoId=` + getVideoURL();
 
     globalUrl = getVideoURL();
     console.log("apiUrl: " + apiUrl)
@@ -50,7 +50,7 @@ function getAdData() {
     return fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
-            console.log(data);
+            console.log("data get: " + JSON.stringify(data));
             return data;
         })
         .catch(error => {
@@ -58,7 +58,6 @@ function getAdData() {
             return null;
         });
 }
-
 
 function getVideoURL() {
     return document.URL;
@@ -69,7 +68,7 @@ var globalUrl = '';
 var globalAdIntervals = [];
 
 setInterval(() => {
-    chrome.storage.local.get('extensionEnabled').then(function(result) {
+    chrome.storage.local.get('extensionEnabled').then(function (result) {
         const extensionToggle = result.extensionEnabled;
         console.log(`extensionToggle: ${extensionToggle}`);
 
@@ -83,15 +82,18 @@ setInterval(() => {
             if (globalAdIntervals.length === 0) {
                 // Сохраняем промис в globalAdIntervals
                 globalAdIntervals = getAdData().then(adData => {
+                    chrome.storage.local.set({'verified': adData.verified ? 'true' : 'false'}, function () {
+                        console.log('Settings saved');
+                    });
                     // Этот код выполнится, когда промис getAdData() разрешится
                     if (adData && adData.ads) {
                         // Перебираем массив временных промежутков и выполняем действия для каждого
                         adData.ads.forEach(adInterval => {
                             // Разделяем начальное и конечное время
                             const [startTime, endTime] = adInterval.split('-');
-                            console.log([startTime, endTime])
-                            console.log(startTime)
-                            console.log(endTime)
+                            console.log([startTime, endTime]);
+                            console.log(startTime);
+                            console.log(endTime);
 
                             // Замените adStartTime и adEndTime на значения из текущего промежутка
                             checkAndFastForward(startTime, endTime);
@@ -102,22 +104,28 @@ setInterval(() => {
             } else {
                 // Если данные уже есть, обрабатываем их
                 globalAdIntervals.then(adData => {
+                    chrome.storage.local.set({adData: adData.verified ? 'true' : 'false'}, function () {
+                        console.log('Settings saved');
+                    });
                     adData.ads.forEach(adInterval => {
                         const [startTime, endTime] = adInterval.split('-');
-                        console.log([startTime, endTime])
-                        console.log(startTime)
-                        console.log(endTime)
+                        console.log([startTime, endTime]);
+                        console.log(startTime);
+                        console.log(endTime);
 
                         // Замените adStartTime и adEndTime на значения из текущего промежутка
                         checkAndFastForward(startTime, endTime);
                     });
+                    return adData;
                 });
             }
             // checkAndFastForward("00:01:36", "00:02:00");
         } else {
             console.info("Тумблер выключен");
         }
-    }).catch(function(error) {
+    }).catch(function (error) {
         console.info("Произошла ошибка при получении данных:", error);
     });
 }, 1000);
+
+chrome.runtime.sendMessage({type: 'verified', data: getVideoURL()});
