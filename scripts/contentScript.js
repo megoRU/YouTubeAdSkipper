@@ -35,45 +35,41 @@ function fastForwardVideo(seconds) {
 }
 
 // Отправка сообщения с запросом состояния тумблера
-navigator.serviceWorker.controller.postMessage({
-    type: 'extensionEnabled'
-});
+chrome.runtime.sendMessage({type: 'getExtensionToggleState'});
 
 // Получение данных о рекламе для текущего видео
-function getAdData() {
+async function getVideoAdData() {
     // Создаем полный URL с параметрами
-    const apiUrl = `https://api.megoru.ru/api/youtube?videoId=` + getVideoURL();
+    const apiUrl = `https://api.megoru.ru/api/youtube/get?videoId=${getCurrentTabURL()}`;
 
-    globalUrl = getVideoURL();
-    console.log("apiUrl: " + apiUrl)
-    // Отправляем GET-запрос
-    return fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            console.log("data get: " + JSON.stringify(data));
-            return data;
-        })
-        .catch(error => {
-            console.info("Произошла ошибка при получении данных о рекламе:", error);
-            return null;
-        });
+    console.log("contentScript.js getVideoAdData: " + apiUrl);
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        console.log("data get: " + JSON.stringify(data));
+        return data;
+    } catch (error) {
+        console.info("Произошла ошибка при получении данных о рекламе:", error);
+        return null;
+    }
 }
 
-function getVideoURL() {
+function getCurrentTabURL() {
     return document.URL;
 }
 
-var globalUrl = '';
+let globalUrl = '';
+let globalAdIntervals = [];
 
-var globalAdIntervals = [];
-
-setInterval(() => {
-    chrome.storage.local.get('extensionEnabled').then(function (result) {
+setInterval(async () => {
+    try {
+        const result = await chrome.storage.local.get('extensionEnabled');
         const extensionToggle = result.extensionEnabled;
-        console.log(`extensionToggle: ${extensionToggle}`);
+        console.log(`contentScript.js setInterval: ${extensionToggle}`);
 
         if (extensionToggle === 'true') {
-            console.log("globalAdIntervals.length: " + globalAdIntervals.length);
+            console.log("contentScript.js setInterval: " + globalAdIntervals.length);
 
             if (globalUrl !== document.URL) {
                 globalAdIntervals = [];
@@ -81,7 +77,7 @@ setInterval(() => {
 
             if (globalAdIntervals.length === 0) {
                 // Сохраняем промис в globalAdIntervals
-                globalAdIntervals = getAdData().then(adData => {
+                globalAdIntervals = await getVideoAdData().then(adData => {
                     if (adData !== null) {
                         // Этот код выполнится, когда промис getAdData() разрешится
                         if (adData && adData.ads) {
@@ -102,26 +98,24 @@ setInterval(() => {
                 });
             } else {
                 // Если данные уже есть, обрабатываем их
-                globalAdIntervals.then(adData => {
-                    if (adData !== undefined) {
-                        adData.ads.forEach(adInterval => {
-                            const [startTime, endTime] = adInterval.split('-');
-                            console.log([startTime, endTime]);
-                            console.log(startTime);
-                            console.log(endTime);
+                const adData = await globalAdIntervals;
+                if (adData !== undefined) {
+                    adData.ads.forEach(adInterval => {
+                        const [startTime, endTime] = adInterval.split('-');
+                        console.log([startTime, endTime]);
+                        console.log(startTime);
+                        console.log(endTime);
 
-                            // Замените adStartTime и adEndTime на значения из текущего промежутка
-                            checkAndFastForward(startTime, endTime);
-                        });
-                        return adData;
-                    }
-                });
+                        // Замените adStartTime и adEndTime на значения из текущего промежутка
+                        checkAndFastForward(startTime, endTime);
+                    });
+                    return adData;
+                }
             }
-            // checkAndFastForward("00:01:36", "00:02:00");
         } else {
             console.info("Тумблер выключен");
         }
-    }).catch(function (error) {
+    } catch (error) {
         console.info("Произошла ошибка при получении данных:", error);
-    });
+    }
 }, 1000);
