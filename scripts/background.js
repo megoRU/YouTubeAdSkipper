@@ -67,6 +67,6 @@ async function getCurrentTab() {
     });
 }
 
-// self.addEventListener('fetch', function (event) {
-//     console.log('fetch: ' + event.returnValue)
-// });
+self.addEventListener('fetch', function (event) {
+    console.log('fetch: ' + event.returnValue)
+});

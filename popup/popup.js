@@ -1,5 +1,6 @@
 // popup.js
 const extensionToggle = document.getElementById('extensionToggle');
+const versionApp = '1.0.5';
 
 // Опционально: отправляем запрос на получение текущего URL при открытии popup
 chrome.runtime.sendMessage({type: 'requestUrl'});
@@ -29,7 +30,7 @@ extensionToggle.addEventListener('change', saveSettings);
 
 // Подписываемся на события сообщений от фонового скрипта
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    const regExp = 'https:\/\/www.youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})';
+    const regExp = 'https://www.youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})';
 
     if (message.type === 'updateUrl') {
         console.log("chrome.runtime.onMessage.addListener updateUrl");
@@ -47,6 +48,9 @@ async function updateData(data, regExp) {
     if (data !== null && data !== undefined && data.match(regExp)) {
         const adData = await getVerified(data);
         const verifiedElement = document.getElementById('verified');
+        document.getElementById('urlDisplay').innerText = data;
+
+        await newVersionChecker(adData.version);
 
         if (adData.ads === null && adData.verified === false) {
             const adTimes = document.getElementById("adTimes");
@@ -69,6 +73,18 @@ async function updateData(data, regExp) {
         }
     } else {
         console.log("Получены данные из background.js: ", data);
+    }
+}
+
+async function newVersionChecker(version) {
+    const versionReplace = version.toString().replaceAll(".", "");
+    const appVersion = versionApp.toString().replaceAll(".", "");
+    console.log("popup.js newVersionChecker: " + versionReplace)
+
+    if (versionReplace === appVersion) {
+        document.getElementById("new-version").style.display = 'none';
+    } else {
+        document.getElementById("new-version").style.display = 'inline-block';
     }
 }
 
