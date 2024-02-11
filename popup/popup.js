@@ -1,4 +1,4 @@
-// script.js
+// popup.js
 const extensionToggle = document.getElementById('extensionToggle');
 
 // Опционально: отправляем запрос на получение текущего URL при открытии popup
@@ -29,42 +29,22 @@ extensionToggle.addEventListener('change', saveSettings);
 
 // Подписываемся на события сообщений от фонового скрипта
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log("chrome.runtime.onMessage.addListener updateUrl");
     const regExp = 'https:\/\/www.youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})';
 
     if (message.type === 'updateUrl') {
-        await updateUrl(message.url, regExp);
+        console.log("chrome.runtime.onMessage.addListener updateUrl");
+        await updateData(message.url, regExp);
     }
 
     if (message.type === 'updateData') {
+        console.log("chrome.runtime.onMessage.addListener updateData");
         await updateData(message.data, regExp);
     }
 });
 
-async function updateUrl(url, regExp) {
-    // Обновляем текст на всплывающем окне с полученным URL
-    document.getElementById('urlDisplay').innerText = url;
-
-    const urlElement = document.getElementById('urlDisplay');
-    let urlReplaced = urlElement.textContent.replaceAll("Ссылка: ", "");
-
-    if (!urlReplaced.match(regExp)) {
-        const adDataInput = document.getElementById('adData');
-        const sendDataButton = document.getElementById('sendData');
-        const adTimes = document.getElementById('adTimes');
-        if (adTimes !== null && adDataInput !== null && sendDataButton !== null) {
-            adTimes.remove();
-            sendDataButton.remove();
-            adDataInput.remove();
-            console.log("Удаляем все");
-        }
-    } else {
-        console.log("Ничего не удаляем");
-    }
-}
-
 async function updateData(data, regExp) {
-    if (data.match(regExp)) {
+    console.log("popup.js updateData: " + data)
+    if (data !== null && data !== undefined && data.match(regExp)) {
         const adData = await getVerified(data);
         const verifiedElement = document.getElementById('verified');
 
