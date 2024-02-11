@@ -1,0 +1,124 @@
+openapi: 3.0.0
+info:
+  title: YouTube API
+  description: API for retrieving and saving YouTube video ads
+  version: 1.0.0
+servers:
+  - url: https://api.megoru.ru
+paths:
+  /api/youtube/get:
+    get:
+      summary: Get YouTube Video Ads
+      parameters:
+        - name: videoId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: YouTube video ID for which ads are to be retrieved
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                ads:
+                  - "00:04:16-00:05:43"
+                version: "1.0.5"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: "Url is Null"
+                version: "1.0.5"
+  /api/youtube/verified:
+    get:
+      summary: Get Verified Video Information
+      parameters:
+        - name: videoId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: YouTube video ID for which verified information is to be retrieved
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                verified: true
+                ads:
+                  - "00:04:16-00:05:43"
+                version: "1.0.5"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: "Url is Null"
+                version: "1.0.5"
+  /api/youtube/save:
+    post:
+      summary: Save Video Ads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoAds'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example:
+                ads:
+                  - "00:04:16-00:05:43"
+                  - "00:05:16-00:06:42"
+                version: "1.0.5"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: "Ссылка невалидная!"
+                version: "1.0.5"
+                details: "Additional details about the error, if needed"
+components:
+  schemas:
+    VideoData:
+      type: object
+      properties:
+        ads:
+          type: array
+          items:
+            type: string
+            description: Ad time range in the format "00:04:16-00:05:43"
+        version:
+          type: string
+          description: API version
+    Errors:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        version:
+          type: string
+          description: API version
+        details:
+          type: string
+          description: Additional details about the error
+    VideoAds:
+      type: object
+      properties:
+        url:
+          type: string
+          description: YouTube video URL
+        ads:
+          type: array
+          items:
+            type: string
+            description: "04:16-05:43;16:00-17:42"
